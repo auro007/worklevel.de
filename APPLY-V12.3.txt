@@ -1,0 +1,19 @@
+WORKLEVEL V12.3 — KURZANLEITUNG (Windows)
+
+1) .env.local öffnen und öffentliche Supabase-Werte eintragen:
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+   (nur Public Keys — keinen Service-Role-Key)
+
+2) Falls noch nicht geschehen: Supabase → SQL Editor →
+   supabase/SETUP-WORKLEVEL-V12.sql einmal ausführen.
+   Alte V3–V11-Setups nicht erneut laufen lassen.
+
+3) Wenn Bestellungen einen Fehler mit „supplier_id“ zeigt:
+   supabase/HOTFIX-V12.2.2-TRIGGER-CLEANUP.sql einmal ausführen,
+   dann Browser neu laden.
+
+4) START-WORKLEVEL.bat doppelklicken → http://localhost:3010
+
+Test: Lieferanten → Material → Bestellungen → Wareneingang →
+Techniker Material → Nachkalkulation → Dashboard (Rechnungs-Summe = Cloud).

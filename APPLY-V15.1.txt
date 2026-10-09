@@ -1,0 +1,19 @@
+WORKLEVEL V15.1 — Public Angebot-Portal UX
+
+SQL: NONE
+
+No database migration. Deploy UI only.
+Reuses existing RPCs get_public_offer / respond_to_public_offer (SETUP-WORKLEVEL-V11.sql).
+
+UI:
+  /angebot/[token] — Danke / Nächste Schritte nach Antwort
+                   — Locked state wenn Angenommen/Abgelehnt (kein Formular)
+                   — Mobile: Positionen gestapelt, Summenbox vollbreit
+                   — Firmenname + Status-Badge oben sichtbar
+
+Sidebar chip V15.1 · package worklevel-v15.1 / 15.1.0
+
+Already-required prior SQL (if environment is behind):
+  SETUP-WORKLEVEL-V11.sql (public offer portal + create_job_from_offer)
+
+Prod project: xvaxlafehhetydvgldfw

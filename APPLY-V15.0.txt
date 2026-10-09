@@ -1,0 +1,21 @@
+WORKLEVEL V15.0 — Angebot angenommen → Auftrag (Geldpfad)
+
+SQL: NONE
+
+No database migration. Deploy UI only.
+Reuses existing RPC create_job_from_offer (SETUP-WORKLEVEL-V11.sql).
+
+UI:
+  /angebote — Banner „Angenommen — noch ohne Auftrag“
+            — CTA „Auftrag aus Angebot“ (Preview + Listen-Zeile)
+            — Bei bestehendem converted_job_id: Link zur Akte (kein Duplikat)
+            — Nach Create: öffnet /auftraege?akte=<id>; Links Plantafel/Techniker
+  / — Owner/Admin: Karte „Angenommene Angebote ohne Auftrag“
+  /plantafel?job=<id> — springt zum Auftragstag + Zuweisen-Dialog
+
+Sidebar chip V15.0 · package worklevel-v15.0 / 15.0.0
+
+Already-required prior SQL (if environment is behind):
+  SETUP-WORKLEVEL-V11.sql (create_job_from_offer, converted_job_id, public offer)
+
+Prod project: xvaxlafehhetydvgldfw

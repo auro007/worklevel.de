@@ -1,0 +1,24 @@
+WORKLEVEL V14.8 — Lieferscheine aus Auftragsakte / Material
+
+SQL: NONE
+
+No database migration. Deploy UI only.
+
+Reuses existing tables / RPC:
+  documents.doc_type = delivery_note (V8)
+  create_business_document, recalculate_document, log_document_event
+  job_materials (V5/V12) for line items
+  Auftragsakte (V14.7) + prepareDeliveryNoteFromJob (client helper)
+
+Already-required prior SQL (if environment is behind):
+  SETUP-WORKLEVEL-V8.sql (documents / delivery_note)
+  SETUP-WORKLEVEL-V14.0-FIELD-TIME.sql
+  SETUP-WORKLEVEL-V14.4-INVOICE-FROM-JOB.sql (Rechnung bleibt)
+  HOTFIX-V8-AMBIGUOUS-ID.sql if create_business_document was ambiguous
+
+UI:
+  /auftraege — Auftragsakte: Materialliste + „Lieferschein erstellen“ (Owner/Admin)
+  /lieferscheine — klarerer Leerzustand, Auftrag → Materialpositionen, Hinweisbanner
+  Sidebar chip V14.8 · package worklevel-v14.8 / 14.8.0
+
+Prod project: xvaxlafehhetydvgldfw

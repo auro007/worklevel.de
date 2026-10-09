@@ -1,0 +1,21 @@
+WORKLEVEL V15.3 — Büro Heute-Übersicht
+
+SQL: NONE
+
+No database migration. Deploy UI only.
+
+Büro /heute:
+  Tagesaufträge (job.date === heute) gruppiert nach Status oder Mitarbeiter
+  Schnelllinks: Akte, Plantafel, Techniker
+  Zähler „Nicht zugewiesen“ für heute
+  Deutsche UI + Empty State
+  Kein neues SQL — nutzt bestehende jobs / employees aus AppData
+
+Sidebar: Heute für owner/admin → /heute · Chip V15.3
+Dashboard: Link „Heute-Übersicht“ + Schnellstart-Chip
+package worklevel-v15.3 / 15.3.0
+
+Already-required prior SQL (if environment is behind):
+  SETUP through V14.5 as documented in earlier APPLY notes.
+
+Prod project: xvaxlafehhetydvgldfw

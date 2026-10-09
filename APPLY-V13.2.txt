@@ -1,0 +1,16 @@
+WORKLEVEL V13.2 — kein neues SQL
+
+V13.2 komprimiert Techniker-Auftragsfotos client-seitig vor dem Upload.
+Kein SETUP-V13.2 nötig. Storage-Bucket „job-files“ und Policies kommen aus V5/V6 bzw. V12-Basis.
+
+Falls noch nicht geschehen, in dieser Reihenfolge in Supabase:
+1) SETUP-WORKLEVEL-V12.sql (Basis, falls neu)
+2) SETUP-WORKLEVEL-V12.4-SECURITY.sql
+3) SETUP-WORKLEVEL-V12.5-LEADS.sql
+4) SETUP-WORKLEVEL-V12.6-REMINDERS.sql
+5) SETUP-WORKLEVEL-V12.7-RECURRING.sql
+
+Dann START-WORKLEVEL.bat → http://localhost:3010
+
+Foto-Hinweis: Auf /techniker Fotos aufnehmen — die App verkleinert und komprimiert
+automatisch (max. Kante ~1600 px, JPEG ~0.72), dann Upload nach job-files.

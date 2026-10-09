@@ -1,0 +1,19 @@
+WORKLEVEL V12.2 — TEST BUILD
+
+1. In Supabase > SQL Editor run:
+   supabase/SETUP-WORKLEVEL-V12.sql
+
+   The file is additive/idempotent for the V12 objects and contains the V12.2 hardening section at the end.
+   Do NOT run old V3–V11 setup files again.
+
+2. Close the old WORKLEVEL terminal.
+3. Double-click START-WORKLEVEL.bat.
+4. Test in this order:
+   a) Create material with Bestand 10 -> stock should show 10 and history gets Anfangsbestand.
+   b) Order 20 -> stock stays 10.
+   c) Wareneingang 20 -> stock becomes 30 exactly once.
+   d) Technician uses 3 -> stock becomes 27 and Nachkalkulation material EK updates.
+   e) Same technician removes that row -> stock becomes 30 and material EK decreases.
+   f) Nachkalkulation uses real technician time and Supabase invoice totals.
+
+V12.2 also adds same-company database guards and loads all purchase-order lines for the order total.

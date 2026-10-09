@@ -1,0 +1,13 @@
+WORKLEVEL V12.8 — kein neues SQL
+
+V12.8 ist nur UI (Techniker mobil + Empty/Loading).
+Kein SETUP-V12.8 nötig.
+
+Falls noch nicht geschehen, in dieser Reihenfolge in Supabase:
+1) SETUP-WORKLEVEL-V12.sql (Basis, falls neu)
+2) SETUP-WORKLEVEL-V12.4-SECURITY.sql
+3) SETUP-WORKLEVEL-V12.5-LEADS.sql
+4) SETUP-WORKLEVEL-V12.6-REMINDERS.sql
+5) SETUP-WORKLEVEL-V12.7-RECURRING.sql
+
+Dann START-WORKLEVEL.bat → http://localhost:3010

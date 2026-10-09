@@ -1,0 +1,26 @@
+WORKLEVEL V14.9 — Dashboard: Erledigte Aufträge ohne Rechnung
+
+SQL: NONE
+
+No database migration. Deploy UI only.
+
+Client-side filter on Dashboard (/):
+  jobs.status = Erledigt
+  minus documents where job_id set, doc_type = invoice, status ≠ Storniert
+  (same documents query the Dashboard already uses for open/overdue totals)
+
+Reuses:
+  prepareInvoiceFromJob → create_invoice_from_job (V14.4 / V14.5)
+  /auftraege?akte=<jobId> opens Auftragsakte (V14.7)
+
+UI:
+  / — Owner/Admin: Karte „Erledigte Aufträge ohne Rechnung“
+      · Zeile: Titel, Kunde, Datum, Akte-Link, „Rechnung vorbereiten“
+      · Leerzustand „Alles abgerechnet“
+  Sidebar chip V14.9 · package worklevel-v14.9 / 14.9.0
+
+Already-required prior SQL (if environment is behind):
+  SETUP-WORKLEVEL-V8.sql (documents)
+  SETUP-WORKLEVEL-V14.4-INVOICE-FROM-JOB.sql (or V14.5 which replaces the RPC)
+
+Prod project: xvaxlafehhetydvgldfw

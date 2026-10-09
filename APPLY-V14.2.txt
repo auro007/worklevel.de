@@ -1,0 +1,25 @@
+WORKLEVEL V14.2 — Mitarbeiter-Profil (Stunden, Urlaub, XP, Geld, Krankheitstage)
+
+SQL: YES — additive
+
+File: supabase/SETUP-WORKLEVEL-V14.2-EMPLOYEE-PROFILE.sql
+
+Applies:
+  employees.hourly_rate           (optional, falls back to company)
+  employees.vacation_days_total   (default 30)
+  employees.sick_days_year        (hint / allowance)
+  table employee_absences         (urlaub|krankheit + RLS)
+  trigger auto-days from date range
+
+Already applied on xvaxlafehhetydvgldfw (2026-09-20).
+If another environment: run the SQL file once in Supabase SQL Editor.
+
+UI: /mitarbeiter → „Profil“ (Owner/Admin)
+  Stunden aus job_time_entries (sonst Plan-Stunden)
+  Urlaub Rest/Anspruch, Krankheitstage (Jahr)
+  XP editierbar (+50 bei Auftrag Erledigt)
+  Geld-Hinweis = Satz × Stunden (kein Payroll)
+
+Worker: Kurzprofil-Streifen auf /techniker (Woche, XP, Urlaub)
+
+Chip: V14.2 · package worklevel-v14.2 / 14.2.0

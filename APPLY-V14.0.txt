@@ -1,0 +1,21 @@
+WORKLEVEL V14.0 — Field workflow (Zeit, Ankunft, Fotos vorher, Checkliste)
+
+SQL: YES — additive
+
+File: supabase/SETUP-WORKLEVEL-V14.0-FIELD-TIME.sql
+
+Applies:
+  jobs.checklist jsonb DEFAULT '[]'
+  job_photos.category text CHECK (vorher|nachher|sonst)
+  set_assigned_job_checklist(p_job uuid, p_checklist jsonb)  -- worker RPC
+
+Already applied on xvaxlafehhetydvgldfw (2026-09-20).
+If another environment: run the SQL file once in Supabase SQL Editor.
+
+Reuses (no change):
+  job_time_entries  — Start/Stop / Ankunft
+  job_photos + storage job-files — Fotos (compress client-side)
+  set_assigned_job_status — worker status In Arbeit / Erledigt
+
+UI: /techniker — Angekommen, heutige Stunden, Maps-Link, Foto-Kategorien, Checkliste.
+Chip: V14.0 · package worklevel-v14.0 / 14.0.0

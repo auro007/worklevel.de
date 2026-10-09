@@ -1,0 +1,8 @@
+WORKLEVEL V15.6
+
+1. Stop V15.5.
+2. Run supabase/SETUP-WORKLEVEL-V15.6-FIXES.sql once in Supabase SQL Editor. It is additive/idempotent.
+3. Start V15.6 normally.
+4. Regression-test: Bestellungen öffnen; Techniker planned material; before/after photo completion; Material units; F5 route.
+
+No database reset. Historical invoices/offers/job material snapshots are intentionally not rewritten.

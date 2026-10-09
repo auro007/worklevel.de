@@ -1,0 +1,23 @@
+WORKLEVEL V14.5 — Wartung Service-Vorlagen (XP + €)
+
+SQL: YES — additive
+
+File: supabase/SETUP-WORKLEVEL-V14.5-SERVICE-TEMPLATES.sql
+
+Applies:
+  recurring_job_templates.default_xp (default 15)
+  recurring_job_templates.default_price (EUR, default 0)
+  jobs.xp_reward
+  jobs.suggested_price
+  generate_due_recurring_jobs → copies XP/€ onto new jobs
+  create_invoice_from_job → flat Wartung line when suggested_price set and no time/material
+
+Already applied on xvaxlafehhetydvgldfw (2026-09-20).
+If another environment: run the SQL file once in Supabase SQL Editor.
+
+UI:
+  /wiederkehrend — Karten mit XP- und €-Badges; Formularfelder XP + Pauschale
+  /plantafel — Job-Karten zeigen XP/€ wenn vom Template gesetzt
+  Abschluss Auftrag — XP aus Vorlage statt fest +50
+
+Chip: V14.5 · package worklevel-v14.5 / 14.5.0

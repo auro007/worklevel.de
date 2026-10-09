@@ -1,0 +1,13 @@
+WORKLEVEL V15.4 — Bestellungen / Liefertermin
+
+SQL: NONE
+
+1. Deploy/extract this UI build.
+2. Start WORKLEVEL normally.
+3. Test /bestellungen:
+   - create order with expected delivery date
+   - open order and change expected delivery date
+   - save and refresh; date must persist
+   - an open order with a past expected date should show „Überfällig“
+
+No database migration is required.

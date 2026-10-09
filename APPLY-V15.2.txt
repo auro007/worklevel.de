@@ -1,0 +1,23 @@
+WORKLEVEL V15.2 — Techniker PWA / offline polish
+
+SQL: NONE
+
+No database migration. Deploy UI only.
+
+PWA / Feld:
+  Manifest + Icons + Apple-Meta (installierbar)
+  Service Worker: Shell-Cache für /techniker, /login, Static Assets
+  Offline-Banner auf /techniker bei navigator.onLine === false
+  Schreibaktionen offline gesperrt (kein Fake-Offline-Write)
+  Auth unverändert — API/Auth-Routen nicht gecacht
+
+Sidebar chip V15.2 · package worklevel-v15.2 / 15.2.0
+
+Service Worker nur in Production (`npm run build && npm start`).
+Zum Testen: Production-Build, /techniker öffnen, App installieren,
+Netzwerk trennen → Offline-Banner + Shell aus Cache.
+
+Already-required prior SQL (if environment is behind):
+  SETUP through V14.5 as documented in earlier APPLY notes.
+
+Prod project: xvaxlafehhetydvgldfw

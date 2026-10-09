@@ -1,0 +1,4 @@
+WORKLEVEL V15.6.2.2
+1. Run supabase/SETUP-WORKLEVEL-V15.6.2.2-FIXES.sql once in Supabase SQL Editor.
+2. Start WORKLEVEL V15.6.2.2.
+3. Regression-test Material 6266 unit, LS-2026-0003 from AU-2026-0007, search RE-2026-0005, and search Material 6266.

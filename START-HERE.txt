@@ -1,0 +1,18 @@
+WORKLEVEL V15.5 — AKTUELLER STAND
+
+Ordnername: worklevel-v15.5  |  package 15.4.0
+
+NEU IN V15.5
+- Bestellungen: erwartetes Lieferdatum anlegen und später bearbeiten
+- Überfällige offene Bestellungen sichtbar markieren
+- Date-Picker im Dark Mode besser bedienbar
+- Kein neues SQL
+
+KUMULIERTER STAND
+V15.0 Angebot → Auftrag · V15.1 Kunden-Portal · V15.2 Techniker PWA · V15.3 Heute · V15.5 Bestell-Liefertermin
+
+START
+1. START-WORKLEVEL.bat
+2. Browser: http://localhost:3010/login
+
+Mehr: WORKLEVEL-CURRENT.md, CHANGELOG-V15.5.md, APPLY-V15.5.txt

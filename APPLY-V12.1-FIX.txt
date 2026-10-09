@@ -1,0 +1,17 @@
+WORKLEVEL V12.1 FIX
+===================
+
+IMPORTANT: Before testing the new stock/material functions, open Supabase -> SQL Editor and run:
+
+  supabase/SETUP-WORKLEVEL-V12.sql
+
+The script is additive/idempotent and keeps existing data. It adds the V12.1 RPC functions and the inventory_material_id link required for material returns and Nachkalkulation sync.
+
+Then start WORKLEVEL normally with START-WORKLEVEL.bat.
+
+Test order:
+1. Material & Lager: create/edit/archive material; use "Bestand ±" for corrections.
+2. Bestellung: create an order, open it, book goods receipt. Stock should increase exactly once.
+3. Techniker: add catalog material. Stock should decrease and material cost should be recorded.
+4. Techniker: click Entfernen. Stock should be returned.
+5. Nachkalkulation: material cost should reflect job material positions.

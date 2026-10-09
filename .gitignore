@@ -1,0 +1,15 @@
+node_modules
+.next
+.env.local
+.env*.local
+npm-debug.log*
+.DS_Store
+
+.vercel
+.env*
+!.env.example
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.cxx/

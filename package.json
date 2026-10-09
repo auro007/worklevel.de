@@ -1,0 +1,27 @@
+{
+  "name": "worklevel-v15.6.2-fix4",
+  "version": "15.6.2-fix4",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "jspdf": "^3.0.2",
+    "next": "16.3.5",
+    "nodemailer": "10.0.10",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "5.4.149",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.9.0"
+  }
+}

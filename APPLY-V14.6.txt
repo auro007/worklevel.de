@@ -1,0 +1,15 @@
+WORKLEVEL V14.6 — Stabilization polish
+
+SQL: NONE
+
+No database migration. Deploy UI only.
+
+Already-required prior SQL (if environment is behind):
+  SETUP-WORKLEVEL-V14.5-SERVICE-TEMPLATES.sql (and earlier V13.6–V14.4 as needed)
+
+UI polish:
+  Dashboard Schnellstart — secondary shortcuts row
+  Global search — error_codes, site_devices, document_templates, customer_sites
+  Sidebar chip V14.6 · package worklevel-v14.6 / 14.6.0
+
+Prod project: xvaxlafehhetydvgldfw

@@ -1,0 +1,11 @@
+WORKLEVEL V12.7 — RECURRING SERVICE JOBS
+
+1) Falls noch nicht: supabase/SETUP-WORKLEVEL-V12.4-SECURITY.sql
+2) Falls noch nicht: supabase/SETUP-WORKLEVEL-V12.5-LEADS.sql
+3) Falls noch nicht: supabase/SETUP-WORKLEVEL-V12.6-REMINDERS.sql
+4) EINMAL: supabase/SETUP-WORKLEVEL-V12.7-RECURRING.sql
+   → recurring_job_templates + RLS
+   → generate_due_recurring_jobs / create_recurring_template
+5) App: package 12.7.0; Menü „Wiederkehrend“; Fällige Aufträge erzeugen
+
+Siehe CHANGELOG-V12.7.md und START-HERE.txt.

@@ -1,0 +1,16 @@
+WORKLEVEL V13.8 — Document templates (Fertige Vorlagen)
+
+SQL: supabase/SETUP-WORKLEVEL-V13.8-DOC-TEMPLATES.sql
+
+Im Supabase SQL Editor ausführen (oder bereits via MCP auf Projekt
+xvaxlafehhetydvgldfw angewendet). Additive, idempotent, safe to re-run.
+
+Erzeugt:
+  public.document_templates
+    id, company_id, doc_type (offer|invoice), name, title, intro, notes,
+    vat_rate, default_items (jsonb), active, created_at, updated_at
+  RLS: owner/admin CRUD (has_company_role)
+  Indexe: (company_id, doc_type), (company_id, active)
+
+Voraussetzung: V12-Basis (companies, has_company_role).
+Keine Änderung an documents / document_items.

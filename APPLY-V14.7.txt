@@ -1,0 +1,25 @@
+WORKLEVEL V14.7 — Auftragsakte (Büro)
+
+SQL: NONE
+
+No database migration. Deploy UI only.
+
+Reuses existing tables / storage / RPC:
+  job_time_entries, job_photos (+ storage bucket job-files signed URLs)
+  jobs.checklist (JSONB from V14.0)
+  create_invoice_from_job (V14.4) for „Rechnung vorbereiten“
+
+Already-required prior SQL (if environment is behind):
+  SETUP-WORKLEVEL-V14.0-FIELD-TIME.sql
+  SETUP-WORKLEVEL-V14.3-SERVICE-CODES-PLANS.sql (Gerät/Fehlercode)
+  SETUP-WORKLEVEL-V14.4-INVOICE-FROM-JOB.sql
+  SETUP-WORKLEVEL-V14.5-SERVICE-TEMPLATES.sql (optional)
+
+UI:
+  /auftraege — Owner/Admin: „Akte“ / Titel öffnet Auftragsakte-Modal
+    Kunde + Einsatzort/Mieter + Gerät + Fehlercode
+    Zeit (Liste + Summe), Checkliste, Fotos vorher/nachher/sonst
+    Rechnung vorbereiten (wenn Erledigt), Link Techniker-Ansicht
+  Sidebar chip V14.7 · package worklevel-v14.7 / 14.7.0
+
+Prod project: xvaxlafehhetydvgldfw

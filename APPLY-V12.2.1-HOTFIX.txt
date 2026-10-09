@@ -1,0 +1,9 @@
+WORKLEVEL V12.2.1 HOTFIX
+
+If Supabase showed:
+  record "new" has no field "supplier_id"
+
+Run ONLY this file in Supabase SQL Editor:
+  supabase/HOTFIX-V12.2.1-SUPPLIER-ID.sql
+
+Then refresh WORKLEVEL. You do not need to delete/reset any data.

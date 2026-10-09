@@ -1,0 +1,3 @@
+-- WORKLEVEL V15.6.2 fixes
+-- Safe/idempotent placeholder migration for V15.6.2.
+-- Draft Lieferschein refresh logic is handled application-side.

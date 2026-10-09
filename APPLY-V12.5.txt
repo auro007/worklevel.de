@@ -1,0 +1,9 @@
+WORKLEVEL V12.5 — CLOUD LEADS
+
+1) Falls noch nicht: supabase/SETUP-WORKLEVEL-V12.4-SECURITY.sql einmal ausführen.
+2) EINMAL: supabase/SETUP-WORKLEVEL-V12.5-LEADS.sql
+   → Tabelle public.leads + RLS (owner/admin)
+3) App: package 12.5.0; /leads lädt/speichert in Supabase.
+4) „Als Kunde → Angebot“ legt Cloud-Kunden an und öffnet Angebote.
+
+Siehe CHANGELOG-V12.5.md und START-HERE.txt.

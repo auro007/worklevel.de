@@ -1,0 +1,11 @@
+WORKLEVEL V13.5 — kein neues SQL
+
+Kundenkommunikation: /versand Versandprotokoll, E-Mail-Status-API,
+Firmendaten-/Versand-Hinweise für Resend, DocumentsManager-Politur.
+
+Env (optional, direkter Versand — nie NEXT_PUBLIC_*):
+  RESEND_API_KEY=re_…
+  RESEND_FROM_EMAIL=noreply@deine-domain.de
+
+Voraussetzung bleibt SETUP-WORKLEVEL-V12.6-REMINDERS.sql (falls noch nicht).
+Kein SETUP-V13.5 nötig — event_type-Whitelist deckt sent/shared/reminder_logged ab.

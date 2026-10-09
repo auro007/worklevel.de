@@ -1,0 +1,1 @@
+No SQL migration required. Install dependencies and rebuild.

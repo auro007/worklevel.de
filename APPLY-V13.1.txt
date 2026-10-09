@@ -1,0 +1,16 @@
+WORKLEVEL V13.1 — kein neues SQL
+
+V13.1 verbessert die PDF-Ausgabe für Angebote und Rechnungen (jsPDF).
+Kein SETUP-V13.1 nötig.
+
+Falls noch nicht geschehen, in dieser Reihenfolge in Supabase:
+1) SETUP-WORKLEVEL-V12.sql (Basis, falls neu)
+2) SETUP-WORKLEVEL-V12.4-SECURITY.sql
+3) SETUP-WORKLEVEL-V12.5-LEADS.sql
+4) SETUP-WORKLEVEL-V12.6-REMINDERS.sql
+5) SETUP-WORKLEVEL-V12.7-RECURRING.sql
+
+Dann START-WORKLEVEL.bat → http://localhost:3010
+
+PDF-Hinweis: Firmendaten (Firmendaten-Seite) steuern Kopfzeile, MwSt./Kleinunternehmer
+und Fußzeile. Keine Rechtsberatung — Angaben vor dem Versand prüfen.

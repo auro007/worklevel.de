@@ -1,0 +1,25 @@
+WORKLEVEL V14.4 — Rechnung vorbereiten aus Auftrag
+
+SQL: YES — additive
+
+File: supabase/SETUP-WORKLEVEL-V14.4-INVOICE-FROM-JOB.sql
+
+Applies:
+  create_invoice_from_job(p_job uuid)
+    → Entwurf-Rechnung für Kunden des Auftrags
+    → Positionen: Material (qty×Preis, VK aus Lager wenn vorhanden) + Arbeitszeit (gebuchte Std. × Firmen-Stundensatz)
+    → job_id am Dokument
+    → idempotent: vorhandene (nicht stornierte) Rechnung zum Auftrag wird zurückgegeben
+  Index documents_job_invoice_idx
+
+Already applied on xvaxlafehhetydvgldfw (2026-09-20).
+If another environment: run the SQL file once in Supabase SQL Editor.
+
+UI:
+  /auftraege  — bei Status „Erledigt“: Button „Rechnung vorbereiten“ (Owner/Admin)
+  /techniker  — nach Abschluss: Owner/Admin gleicher Button; Worker sieht nur Hinweis
+  /rechnungen?doc=<id> — öffnet Vorschau der neuen/bestehenden Rechnung
+
+Workers: kein Anlegen — nur Meldung „Fertig — das Büro erstellt die Rechnung.“
+
+Chip: V14.4 · package worklevel-v14.4 / 14.4.0

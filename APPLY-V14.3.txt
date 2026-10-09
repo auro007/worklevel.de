@@ -1,0 +1,26 @@
+WORKLEVEL V14.3 — Kundendienst Fehlercodes + Geräte-Pläne
+
+SQL: YES — additive
+
+File: supabase/SETUP-WORKLEVEL-V14.3-SERVICE-CODES-PLANS.sql
+
+Applies:
+  error_codes                 (Katalog + RLS office CRUD / member SELECT)
+  site_devices                (Geräte am Kunden/Objekt + RLS)
+  jobs.error_code_id          (optional FK)
+  jobs.site_device_id         (optional FK)
+  set_assigned_job_error_code (Worker-RPC)
+  storage bucket device-plans
+
+Already applied on xvaxlafehhetydvgldfw (2026-09-20).
+If another environment: run the SQL file once in Supabase SQL Editor.
+
+UI:
+  /fehlercodes  — Owner/Admin CRUD, Suche/Filter
+  /geraete      — Owner/Admin Geräte & Pläne
+  /auftraege    — optional Gerät + Fehlercode am Auftrag
+  /techniker    — Code nachschlagen/anhängen, Geräte/Pläne am Einsatz
+
+Workers: Codes lesen + anhängen, Geräte sehen — kein Admin-CRUD.
+
+Chip: V14.3 · package worklevel-v14.3 / 14.3.0

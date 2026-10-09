@@ -1,0 +1,16 @@
+WORKLEVEL V13.7 — Plantafel hour grid
+
+SQL: none
+
+Kein neues SQL. Die Tages-Plantafel (Mitarbeiter × Stunden) nutzt
+ausschließlich bestehende Felder:
+
+  jobs.job_date, jobs.job_time, jobs.employee_id,
+  jobs.priority, jobs.estimated_hours, jobs.status, jobs.title
+  employees.active, employees.name, employees.status, employees.xp
+
+Keine Schema-Änderung, kein xp_reward auf jobs.
+Bestehende Planung / Aufträge bleiben unverändert.
+
+Voraussetzung: V12-Basis (+ V12.4–V12.7 wie bisher).
+V13.6 customer_sites optional (für Objekte), nicht nötig für die Plantafel.

@@ -1,0 +1,5 @@
+WORKLEVEL V13.4 — kein neues SQL
+
+V13.4 ist Mahnwesen-UI (Seite /mahnungen, Sidebar, Dashboard-Link,
+Stufenlabels). Voraussetzung bleibt SETUP-WORKLEVEL-V12.6-REMINDERS.sql
+(falls noch nicht ausgeführt). Kein SETUP-V13.4 nötig.

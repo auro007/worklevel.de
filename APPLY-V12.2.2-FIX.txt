@@ -1,0 +1,20 @@
+WORKLEVEL V12.2.2 STABILITY FIX
+
+The error "record NEW has no field supplier_id" means an obsolete generic database trigger from an older V12.2 migration is still attached somewhere.
+
+Run ONE file in Supabase SQL Editor:
+  supabase/HOTFIX-V12.2.2-TRIGGER-CLEANUP.sql
+
+What it does:
+- keeps existing business data
+- adds only missing compatibility columns
+- removes every trigger still using the obsolete generic trigger function
+- deletes the obsolete function
+- recreates four table-specific company guards
+- verifies the old trigger function is no longer attached
+
+After SQL succeeds:
+1. Refresh WORKLEVEL.
+2. Open Bestellungen.
+3. Create one new Bestellung and open it.
+4. If there is no red supplier_id error, continue with Wareneingang testing.

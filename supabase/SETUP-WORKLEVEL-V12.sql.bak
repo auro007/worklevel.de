@@ -1,0 +1,332 @@
+-- WORKLEVEL V12 — Procurement & Inventory
+-- Additive migration. Run AFTER the existing WORKLEVEL V11 migration.
+-- Keeps all existing data. Company isolation is enforced with RLS.
+
+create extension if not exists pgcrypto;
+
+create table if not exists public.suppliers (
+  id uuid primary key default gen_random_uuid(), company_id uuid not null references public.companies(id) on delete cascade,
+  name text not null, contact_name text, street text, postal_code text, city text, phone text, email text,
+  payment_terms_days integer not null default 14, notes text, active boolean not null default true,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create index if not exists suppliers_company_idx on public.suppliers(company_id,name);
+
+create table if not exists public.inventory_materials (
+  id uuid primary key default gen_random_uuid(), company_id uuid not null references public.companies(id) on delete cascade,
+  sku text, name text not null, unit text not null default 'Stk.', purchase_price numeric(12,2) not null default 0,
+  sales_price numeric(12,2) not null default 0, stock numeric(14,3) not null default 0, min_stock numeric(14,3) not null default 0,
+  supplier_id uuid references public.suppliers(id) on delete set null, active boolean not null default true,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now(), unique(company_id,sku)
+);
+create index if not exists inventory_materials_company_idx on public.inventory_materials(company_id,name);
+
+create table if not exists public.purchase_orders (
+  id uuid primary key default gen_random_uuid(), company_id uuid not null references public.companies(id) on delete cascade,
+  order_number text not null, supplier_id uuid references public.suppliers(id) on delete set null,
+  order_date date not null default current_date, expected_date date, status text not null default 'Entwurf'
+    check(status in ('Entwurf','Bestellt','Teilgeliefert','Geliefert','Storniert')),
+  shipping_cost numeric(12,2) not null default 0, notes text, created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now(), unique(company_id,order_number)
+);
+create index if not exists purchase_orders_company_idx on public.purchase_orders(company_id,created_at desc);
+
+create table if not exists public.purchase_order_items (
+  id uuid primary key default gen_random_uuid(), company_id uuid not null references public.companies(id) on delete cascade,
+  purchase_order_id uuid not null references public.purchase_orders(id) on delete cascade,
+  material_id uuid references public.inventory_materials(id) on delete set null, description text not null, unit text not null default 'Stk.',
+  quantity numeric(14,3) not null check(quantity > 0), received_quantity numeric(14,3) not null default 0,
+  unit_price numeric(12,2) not null default 0, created_at timestamptz not null default now()
+);
+create index if not exists purchase_order_items_order_idx on public.purchase_order_items(purchase_order_id);
+
+create table if not exists public.inventory_movements (
+  id uuid primary key default gen_random_uuid(), company_id uuid not null references public.companies(id) on delete cascade,
+  material_id uuid not null references public.inventory_materials(id) on delete cascade,
+  movement_type text not null check(movement_type in ('initial','receipt','job_usage','adjustment')),
+  quantity numeric(14,3) not null, purchase_order_id uuid references public.purchase_orders(id) on delete set null,
+  job_id uuid references public.jobs(id) on delete set null, note text, actor_user_id uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index if not exists inventory_movements_material_idx on public.inventory_movements(material_id,created_at desc);
+
+alter table public.suppliers enable row level security;
+alter table public.inventory_materials enable row level security;
+alter table public.purchase_orders enable row level security;
+alter table public.purchase_order_items enable row level security;
+alter table public.inventory_movements enable row level security;
+
+do $$ declare t text; begin
+  foreach t in array array['suppliers','inventory_materials','purchase_orders','purchase_order_items','inventory_movements'] loop
+    execute format('drop policy if exists %I on public.%I', t||'_office', t);
+    execute format('create policy %I on public.%I for all to authenticated using (public.has_company_role(company_id, array[''owner'',''admin''])) with check (public.has_company_role(company_id, array[''owner'',''admin'']))', t||'_office', t);
+  end loop;
+end $$;
+
+-- Workers may see the catalog without purchase/sales prices through this RPC only.
+create or replace function public.worker_inventory_catalog()
+returns table(id uuid, sku text, name text, unit text, stock numeric)
+language sql security definer set search_path=public as $$
+  select m.id,m.sku,m.name,m.unit,m.stock from public.inventory_materials m
+  where m.active and public.has_company_role(m.company_id,array['worker','owner','admin']) order by m.name;
+$$;
+grant execute on function public.worker_inventory_catalog() to authenticated;
+
+-- Atomic goods receipt. p_receipts = [{"item_id":"uuid","quantity":2}]
+create or replace function public.receive_purchase_order(p_order uuid, p_receipts jsonb)
+returns void language plpgsql security definer set search_path=public as $$
+declare v_company uuid; r jsonb; v_item public.purchase_order_items%rowtype; v_qty numeric; v_open numeric; v_remaining int;
+begin
+  select company_id into v_company from public.purchase_orders where id=p_order for update;
+  if v_company is null or not public.has_company_role(v_company,array['owner','admin']) then raise exception 'Keine Berechtigung'; end if;
+  for r in select * from jsonb_array_elements(coalesce(p_receipts,'[]'::jsonb)) loop
+    select * into v_item from public.purchase_order_items where id=(r->>'item_id')::uuid and purchase_order_id=p_order for update;
+    if v_item.id is null then raise exception 'Bestellposition nicht gefunden'; end if;
+    v_qty := greatest(coalesce((r->>'quantity')::numeric,0),0); v_open := v_item.quantity-v_item.received_quantity;
+    if v_qty > v_open then raise exception 'Liefermenge ist größer als offene Menge'; end if;
+    if v_qty > 0 then
+      update public.purchase_order_items set received_quantity=received_quantity+v_qty where id=v_item.id;
+      if v_item.material_id is not null then
+        update public.inventory_materials set stock=stock+v_qty, purchase_price=v_item.unit_price, updated_at=now() where id=v_item.material_id;
+        insert into public.inventory_movements(company_id,material_id,movement_type,quantity,purchase_order_id,note,actor_user_id)
+        values(v_company,v_item.material_id,'receipt',v_qty,p_order,'Wareneingang',auth.uid());
+      end if;
+    end if;
+  end loop;
+  select count(*) into v_remaining from public.purchase_order_items where purchase_order_id=p_order and received_quantity < quantity;
+  update public.purchase_orders set status=case when v_remaining=0 then 'Geliefert' else 'Teilgeliefert' end,updated_at=now() where id=p_order;
+end $$;
+grant execute on function public.receive_purchase_order(uuid,jsonb) to authenticated;
+
+-- Catalog material usage: hides prices from workers, deducts stock atomically, records actual EK on job.
+create or replace function public.add_catalog_material_to_job(p_job uuid,p_material uuid,p_quantity numeric)
+returns void language plpgsql security definer set search_path=public as $$
+declare v_company uuid; v_employee uuid; v_mat public.inventory_materials%rowtype;
+begin
+  select j.company_id,j.employee_id into v_company,v_employee from public.jobs j where j.id=p_job;
+  if v_company is null then raise exception 'Auftrag nicht gefunden'; end if;
+  if not public.has_company_role(v_company,array['owner','admin']) then
+    if not public.has_company_role(v_company,array['worker']) or not exists(select 1 from public.employees e where e.id=v_employee and e.auth_user_id=auth.uid()) then raise exception 'Keine Berechtigung'; end if;
+  end if;
+  if p_quantity is null or p_quantity<=0 then raise exception 'Ungültige Menge'; end if;
+  select * into v_mat from public.inventory_materials where id=p_material and company_id=v_company and active for update;
+  if v_mat.id is null then raise exception 'Material nicht gefunden'; end if;
+  if v_mat.stock < p_quantity then raise exception 'Nicht genügend Lagerbestand'; end if;
+  update public.inventory_materials set stock=stock-p_quantity,updated_at=now() where id=v_mat.id;
+  insert into public.inventory_movements(company_id,material_id,movement_type,quantity,job_id,note,actor_user_id) values(v_company,v_mat.id,'job_usage',-p_quantity,p_job,'Auftragsverbrauch',auth.uid());
+  insert into public.job_materials(owner_id,company_id,job_id,material_name,quantity,unit,unit_price) values(auth.uid(),v_company,p_job,v_mat.name,p_quantity,v_mat.unit,v_mat.purchase_price);
+end $$;
+grant execute on function public.add_catalog_material_to_job(uuid,uuid,numeric) to authenticated;
+
+-- V12.1 fixes: trace catalog material on jobs, stock correction, removal/return, and job cost sync.
+alter table public.job_materials add column if not exists inventory_material_id uuid references public.inventory_materials(id) on delete set null;
+create index if not exists job_materials_inventory_idx on public.job_materials(inventory_material_id);
+
+create or replace function public.sync_job_material_cost(p_job uuid)
+returns void language plpgsql security definer set search_path=public as $$
+begin
+  update public.jobs j set material_cost=coalesce((select sum(jm.quantity*jm.unit_price) from public.job_materials jm where jm.job_id=p_job),0)
+  where j.id=p_job;
+end $$;
+
+create or replace function public.add_catalog_material_to_job(p_job uuid,p_material uuid,p_quantity numeric)
+returns void language plpgsql security definer set search_path=public as $$
+declare v_company uuid; v_employee uuid; v_mat public.inventory_materials%rowtype;
+begin
+  select j.company_id,j.employee_id into v_company,v_employee from public.jobs j where j.id=p_job;
+  if v_company is null then raise exception 'Auftrag nicht gefunden'; end if;
+  if not public.has_company_role(v_company,array['owner','admin']) then
+    if not public.has_company_role(v_company,array['worker']) or not exists(select 1 from public.employees e where e.id=v_employee and e.auth_user_id=auth.uid()) then raise exception 'Keine Berechtigung'; end if;
+  end if;
+  if p_quantity is null or p_quantity<=0 then raise exception 'Ungültige Menge'; end if;
+  select * into v_mat from public.inventory_materials where id=p_material and company_id=v_company and active for update;
+  if v_mat.id is null then raise exception 'Material nicht gefunden'; end if;
+  if v_mat.stock < p_quantity then raise exception 'Nicht genügend Lagerbestand'; end if;
+  update public.inventory_materials set stock=stock-p_quantity,updated_at=now() where id=v_mat.id;
+  insert into public.inventory_movements(company_id,material_id,movement_type,quantity,job_id,note,actor_user_id) values(v_company,v_mat.id,'job_usage',-p_quantity,p_job,'Auftragsverbrauch',auth.uid());
+  insert into public.job_materials(owner_id,company_id,job_id,inventory_material_id,material_name,quantity,unit,unit_price) values(auth.uid(),v_company,p_job,v_mat.id,v_mat.name,p_quantity,v_mat.unit,v_mat.purchase_price);
+  perform public.sync_job_material_cost(p_job);
+end $$;
+grant execute on function public.add_catalog_material_to_job(uuid,uuid,numeric) to authenticated;
+
+create or replace function public.remove_job_material(p_job_material uuid)
+returns void language plpgsql security definer set search_path=public as $$
+declare v_jm public.job_materials%rowtype; v_company uuid; v_employee uuid;
+begin
+  select * into v_jm from public.job_materials where id=p_job_material for update;
+  if v_jm.id is null then raise exception 'Materialposition nicht gefunden'; end if;
+  select company_id,employee_id into v_company,v_employee from public.jobs where id=v_jm.job_id;
+  if not public.has_company_role(v_company,array['owner','admin']) then
+    if not public.has_company_role(v_company,array['worker']) or not exists(select 1 from public.employees e where e.id=v_employee and e.auth_user_id=auth.uid()) then raise exception 'Keine Berechtigung'; end if;
+  end if;
+  if v_jm.inventory_material_id is not null then
+    update public.inventory_materials set stock=stock+v_jm.quantity,updated_at=now() where id=v_jm.inventory_material_id and company_id=v_company;
+    insert into public.inventory_movements(company_id,material_id,movement_type,quantity,job_id,note,actor_user_id)
+    values(v_company,v_jm.inventory_material_id,'adjustment',v_jm.quantity,v_jm.job_id,'Material vom Auftrag zurückgebucht',auth.uid());
+  end if;
+  delete from public.job_materials where id=v_jm.id;
+  perform public.sync_job_material_cost(v_jm.job_id);
+end $$;
+grant execute on function public.remove_job_material(uuid) to authenticated;
+
+create or replace function public.adjust_inventory_stock(p_material uuid,p_quantity numeric,p_note text default 'Bestandskorrektur')
+returns void language plpgsql security definer set search_path=public as $$
+declare v_mat public.inventory_materials%rowtype;
+begin
+  select * into v_mat from public.inventory_materials where id=p_material for update;
+  if v_mat.id is null or not public.has_company_role(v_mat.company_id,array['owner','admin']) then raise exception 'Keine Berechtigung'; end if;
+  if p_quantity is null or p_quantity=0 then raise exception 'Korrekturmenge darf nicht 0 sein'; end if;
+  if v_mat.stock+p_quantity < 0 then raise exception 'Bestand kann nicht negativ werden'; end if;
+  update public.inventory_materials set stock=stock+p_quantity,updated_at=now() where id=v_mat.id;
+  insert into public.inventory_movements(company_id,material_id,movement_type,quantity,note,actor_user_id)
+  values(v_mat.company_id,v_mat.id,'adjustment',p_quantity,coalesce(nullif(trim(p_note),''),'Bestandskorrektur'),auth.uid());
+end $$;
+grant execute on function public.adjust_inventory_stock(uuid,numeric,text) to authenticated;
+
+-- Sync existing job costs from already recorded material positions.
+update public.jobs j set material_cost=coalesce((select sum(jm.quantity*jm.unit_price) from public.job_materials jm where jm.job_id=j.id),0)
+where exists(select 1 from public.job_materials jm where jm.job_id=j.id);
+
+-- ============================================================
+-- WORKLEVEL V12.2 hardening & costing fixes
+-- Safe additive section; may be run after an earlier V12/V12.1.
+-- ============================================================
+
+-- 1) Enforce same-company links inside procurement/inventory.
+create or replace function public.enforce_procurement_company_links()
+returns trigger language plpgsql set search_path=public as $$
+declare v_company uuid;
+begin
+  if tg_table_name = 'inventory_materials' and new.supplier_id is not null then
+    select company_id into v_company from public.suppliers where id=new.supplier_id;
+    if v_company is distinct from new.company_id then raise exception 'Lieferant gehört nicht zu dieser Firma'; end if;
+  elsif tg_table_name = 'purchase_orders' and new.supplier_id is not null then
+    select company_id into v_company from public.suppliers where id=new.supplier_id;
+    if v_company is distinct from new.company_id then raise exception 'Lieferant gehört nicht zu dieser Firma'; end if;
+  elsif tg_table_name = 'purchase_order_items' then
+    select company_id into v_company from public.purchase_orders where id=new.purchase_order_id;
+    if v_company is distinct from new.company_id then raise exception 'Bestellung gehört nicht zu dieser Firma'; end if;
+    if new.material_id is not null then
+      select company_id into v_company from public.inventory_materials where id=new.material_id;
+      if v_company is distinct from new.company_id then raise exception 'Material gehört nicht zu dieser Firma'; end if;
+    end if;
+  elsif tg_table_name = 'inventory_movements' then
+    select company_id into v_company from public.inventory_materials where id=new.material_id;
+    if v_company is distinct from new.company_id then raise exception 'Lagerbewegung/Material gehören nicht zur gleichen Firma'; end if;
+    if new.purchase_order_id is not null then
+      select company_id into v_company from public.purchase_orders where id=new.purchase_order_id;
+      if v_company is distinct from new.company_id then raise exception 'Lagerbewegung/Bestellung gehören nicht zur gleichen Firma'; end if;
+    end if;
+    if new.job_id is not null then
+      select company_id into v_company from public.jobs where id=new.job_id;
+      if v_company is distinct from new.company_id then raise exception 'Lagerbewegung/Auftrag gehören nicht zur gleichen Firma'; end if;
+    end if;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists inventory_materials_company_guard on public.inventory_materials;
+create trigger inventory_materials_company_guard before insert or update on public.inventory_materials
+for each row execute function public.enforce_procurement_company_links();
+drop trigger if exists purchase_orders_company_guard on public.purchase_orders;
+create trigger purchase_orders_company_guard before insert or update on public.purchase_orders
+for each row execute function public.enforce_procurement_company_links();
+drop trigger if exists purchase_order_items_company_guard on public.purchase_order_items;
+create trigger purchase_order_items_company_guard before insert or update on public.purchase_order_items
+for each row execute function public.enforce_procurement_company_links();
+drop trigger if exists inventory_movements_company_guard on public.inventory_movements;
+create trigger inventory_movements_company_guard before insert or update on public.inventory_movements
+for each row execute function public.enforce_procurement_company_links();
+
+-- 2) Every new material with opening stock gets a traceable initial movement.
+create or replace function public.record_initial_inventory_stock()
+returns trigger language plpgsql security definer set search_path=public as $$
+begin
+  if coalesce(new.stock,0) <> 0 then
+    insert into public.inventory_movements(company_id,material_id,movement_type,quantity,note,actor_user_id)
+    values(new.company_id,new.id,'initial',new.stock,'Anfangsbestand',auth.uid());
+  end if;
+  return new;
+end $$;
+drop trigger if exists inventory_material_initial_movement on public.inventory_materials;
+create trigger inventory_material_initial_movement after insert on public.inventory_materials
+for each row execute function public.record_initial_inventory_stock();
+
+-- 3) Material cost is always derived from the actual job_materials rows.
+create or replace function public.recalculate_job_material_cost_trigger()
+returns trigger language plpgsql security definer set search_path=public as $$
+declare v_job uuid;
+begin
+  v_job := coalesce(new.job_id,old.job_id);
+  update public.jobs j
+     set material_cost=coalesce((select sum(jm.quantity*jm.unit_price) from public.job_materials jm where jm.job_id=v_job),0)
+   where j.id=v_job;
+  return coalesce(new,old);
+end $$;
+drop trigger if exists job_material_cost_after_change on public.job_materials;
+create trigger job_material_cost_after_change after insert or update or delete on public.job_materials
+for each row execute function public.recalculate_job_material_cost_trigger();
+
+-- Keep helper private. It is only used by trusted database code.
+revoke all on function public.sync_job_material_cost(uuid) from public;
+revoke all on function public.sync_job_material_cost(uuid) from authenticated;
+
+-- 4) Worker may remove only material rows they personally added to their assigned job.
+create or replace function public.remove_job_material(p_job_material uuid)
+returns void language plpgsql security definer set search_path=public as $$
+declare v_jm public.job_materials%rowtype; v_company uuid; v_employee uuid; v_is_office boolean;
+begin
+  select * into v_jm from public.job_materials where id=p_job_material for update;
+  if v_jm.id is null then raise exception 'Materialposition nicht gefunden'; end if;
+  select company_id,employee_id into v_company,v_employee from public.jobs where id=v_jm.job_id;
+  v_is_office := public.has_company_role(v_company,array['owner','admin']);
+  if not v_is_office then
+    if not public.has_company_role(v_company,array['worker'])
+       or not exists(select 1 from public.employees e where e.id=v_employee and e.auth_user_id=auth.uid())
+       or v_jm.owner_id <> auth.uid()
+    then raise exception 'Mitarbeiter dürfen nur selbst erfasstes Material ihres zugewiesenen Auftrags entfernen'; end if;
+  end if;
+  if v_jm.inventory_material_id is not null then
+    update public.inventory_materials set stock=stock+v_jm.quantity,updated_at=now()
+      where id=v_jm.inventory_material_id and company_id=v_company;
+    insert into public.inventory_movements(company_id,material_id,movement_type,quantity,job_id,note,actor_user_id)
+    values(v_company,v_jm.inventory_material_id,'adjustment',v_jm.quantity,v_jm.job_id,'Material vom Auftrag zurückgebucht',auth.uid());
+  end if;
+  delete from public.job_materials where id=v_jm.id;
+end $$;
+grant execute on function public.remove_job_material(uuid) to authenticated;
+
+-- 5) Harden receipt: order, line and catalog material must all be from one company.
+create or replace function public.receive_purchase_order(p_order uuid, p_receipts jsonb)
+returns void language plpgsql security definer set search_path=public as $$
+declare v_company uuid; r jsonb; v_item public.purchase_order_items%rowtype; v_qty numeric; v_open numeric; v_remaining int; v_material_company uuid;
+begin
+  select company_id into v_company from public.purchase_orders where id=p_order for update;
+  if v_company is null or not public.has_company_role(v_company,array['owner','admin']) then raise exception 'Keine Berechtigung'; end if;
+  for r in select * from jsonb_array_elements(coalesce(p_receipts,'[]'::jsonb)) loop
+    select * into v_item from public.purchase_order_items where id=(r->>'item_id')::uuid and purchase_order_id=p_order for update;
+    if v_item.id is null then raise exception 'Bestellposition nicht gefunden'; end if;
+    if v_item.company_id <> v_company then raise exception 'Bestellposition gehört nicht zu dieser Firma'; end if;
+    v_qty := greatest(coalesce((r->>'quantity')::numeric,0),0);
+    v_open := v_item.quantity-v_item.received_quantity;
+    if v_qty > v_open then raise exception 'Liefermenge ist größer als offene Menge'; end if;
+    if v_qty > 0 then
+      update public.purchase_order_items set received_quantity=received_quantity+v_qty where id=v_item.id;
+      if v_item.material_id is not null then
+        select company_id into v_material_company from public.inventory_materials where id=v_item.material_id for update;
+        if v_material_company is distinct from v_company then raise exception 'Material gehört nicht zu dieser Firma'; end if;
+        update public.inventory_materials set stock=stock+v_qty,purchase_price=v_item.unit_price,updated_at=now() where id=v_item.material_id and company_id=v_company;
+        insert into public.inventory_movements(company_id,material_id,movement_type,quantity,purchase_order_id,note,actor_user_id)
+        values(v_company,v_item.material_id,'receipt',v_qty,p_order,'Wareneingang',auth.uid());
+      end if;
+    end if;
+  end loop;
+  select count(*) into v_remaining from public.purchase_order_items where purchase_order_id=p_order and received_quantity < quantity;
+  update public.purchase_orders set status=case when v_remaining=0 then 'Geliefert' else 'Teilgeliefert' end,updated_at=now() where id=p_order and company_id=v_company;
+end $$;
+grant execute on function public.receive_purchase_order(uuid,jsonb) to authenticated;
+
+-- Sync costs for jobs that already have recorded material rows.
+update public.jobs j
+set material_cost=coalesce((select sum(jm.quantity*jm.unit_price) from public.job_materials jm where jm.job_id=j.id),0)
+where exists(select 1 from public.job_materials jm where jm.job_id=j.id);

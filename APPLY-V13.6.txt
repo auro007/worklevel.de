@@ -1,0 +1,16 @@
+WORKLEVEL V13.6 — Customer Sites (Objekte / Häuser)
+
+Einmal im Supabase SQL Editor ausführen:
+
+  supabase/SETUP-WORKLEVEL-V13.6-CUSTOMER-SITES.sql
+
+Was passiert:
+- Tabelle public.customer_sites (company_id, customer_id bigint FK,
+  name, Adresse, Mieter-Felder, active, Timestamps)
+- RLS: owner/admin CRUD; worker SELECT wenn Kunde über zugewiesenen Auftrag
+- jobs.customer_site_id uuid NULL (optionaler Einsatzort)
+- Index (company_id, customer_id)
+- Idempotent / safe to re-run
+
+Voraussetzung: V12-Basis + V12.4–V12.7 (wie bisher).
+Kein Billing, keine Deployment-Schritte.

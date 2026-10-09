@@ -1,0 +1,10 @@
+WORKLEVEL V15.5
+
+1. Projekt ersetzen / entpacken.
+2. In Supabase > SQL Editor die Datei ausführen:
+   supabase/SETUP-WORKLEVEL-V15.5-OFFER-JOB-MATERIAL-PLAN.sql
+3. WORKLEVEL neu starten.
+4. Bestehenden Auftrag AU-2026-100? aus AG-2026-0002 öffnen.
+   In der Akte muss „Geplantes Material aus Angebot“ mit den Materialpositionen erscheinen.
+
+Wichtig: Geplantes Material verändert Lager und Nachkalkulation noch nicht. Erst tatsächliche Materialverwendung tut das.

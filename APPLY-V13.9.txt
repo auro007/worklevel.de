@@ -1,0 +1,19 @@
+WORKLEVEL V13.9 — Nachkalkulation / Kalkulation
+
+SQL: none
+
+Kein neues SQL. Die verbesserte Nachkalkulation nutzt ausschließlich
+bestehende Felder und Tabellen (company-scoped):
+
+  jobs.job_date, jobs.status, jobs.customer_id,
+  jobs.estimated_hours, jobs.material_cost, jobs.title, jobs.job_number
+  job_time_entries (job_id, started_at, ended_at, company_id)
+  job_materials (für Drill-down)
+  documents (invoice/offer, job_id, total_amount, status, document_number)
+  companies.hourly_rate
+
+Lohnmodell unverändert: Ist-Stunden × Verrechnungssatz × 48 % Lohnanteil.
+Angebotswert und Plan-Lohn nur Vergleich — kein fiktiver Umsatz.
+
+Voraussetzung: V12-Basis (+ V12.4–V12.7 wie bisher).
+V13.8 document_templates optional (unabhängig von dieser Seite).

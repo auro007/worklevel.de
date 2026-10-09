@@ -1,0 +1,20 @@
+WORKLEVEL V14.1 — Material catalogs (Gewerk, Schlagwörter, Bilder, Händler)
+
+SQL: YES — additive
+
+File: supabase/SETUP-WORKLEVEL-V14.1-MATERIAL-CATALOG.sql
+
+Applies:
+  inventory_materials.trade_category  (Heizung|Sanitär|Lüftung|Klima|Sonstiges)
+  inventory_materials.keywords        text[]
+  inventory_materials.image_path      text (bucket material-files)
+  storage bucket material-files + office RLS
+  indexes on trade / supplier / keywords (GIN)
+
+Already applied on xvaxlafehhetydvgldfw (2026-09-20).
+If another environment: run the SQL file once in Supabase SQL Editor.
+
+Reuses: suppliers (Händler), compressImage + stock/order RPCs unchanged.
+
+UI: /material — filter Gewerk + Schlagwort-Suche + Händler, Thumbnails, Gruppierung.
+Chip: V14.1 · package worklevel-v14.1 / 14.1.0

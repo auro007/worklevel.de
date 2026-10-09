@@ -1,0 +1,12 @@
+WORKLEVEL V12.6 — INVOICE REMINDERS
+
+1) Falls noch nicht: supabase/SETUP-WORKLEVEL-V12.4-SECURITY.sql
+2) Falls noch nicht: supabase/SETUP-WORKLEVEL-V12.5-LEADS.sql
+3) EINMAL: supabase/SETUP-WORKLEVEL-V12.6-REMINDERS.sql
+   → last_reminder_at / reminder_count
+   → mark_invoice_reminded RPC
+   → overdue_open_invoices View
+4) App: package 12.6.0; Rechnungen + Dashboard Überfällig
+5) Resend optional — ohne Keys: Text kopieren / mailto / nur vermerken
+
+Siehe CHANGELOG-V12.6.md und START-HERE.txt.
