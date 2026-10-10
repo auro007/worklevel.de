@@ -8,6 +8,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import type { CustomerSite } from "@/lib/types";
 import { formatCloudError } from "@/lib/utils";
 import { useConfirm } from "@/components/ConfirmProvider";
+import { PlzOrtFields } from "@/components/PlzOrtFields";
 
 const blank = { number: "", name: "", contact: "", street: "", postalCode: "", city: "", phone: "", email: "", notes: "" };
 const blankSite = { name: "", street: "", postalCode: "", city: "", tenantName: "", tenantPhone: "", tenantEmail: "", notes: "" };
@@ -764,14 +765,11 @@ export default function CustomersPage() {
                 <label>Straße + Hausnummer (Rechnung)</label>
                 <input className="input" value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
               </div>
-              <div className="formField">
-                <label>PLZ</label>
-                <input className="input" value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} />
-              </div>
-              <div className="formField">
-                <label>Ort</label>
-                <input className="input" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-              </div>
+              <PlzOrtFields
+                postalCode={form.postalCode}
+                city={form.city}
+                onChange={(postalCode, city) => setForm((current) => ({ ...current, postalCode, city }))}
+              />
               <div className="formField wide">
                 <label>E-Mail</label>
                 <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
@@ -809,14 +807,11 @@ export default function CustomersPage() {
                 <label>Straße + Hausnummer (Einsatzort)</label>
                 <input className="input" value={siteForm.street} onChange={(e) => setSiteForm({ ...siteForm, street: e.target.value })} />
               </div>
-              <div className="formField">
-                <label>PLZ</label>
-                <input className="input" value={siteForm.postalCode} onChange={(e) => setSiteForm({ ...siteForm, postalCode: e.target.value })} />
-              </div>
-              <div className="formField">
-                <label>Ort</label>
-                <input className="input" value={siteForm.city} onChange={(e) => setSiteForm({ ...siteForm, city: e.target.value })} />
-              </div>
+              <PlzOrtFields
+                postalCode={siteForm.postalCode}
+                city={siteForm.city}
+                onChange={(postalCode, city) => setSiteForm((current) => ({ ...current, postalCode, city }))}
+              />
               <div className="formField">
                 <label>Mieter Telefon</label>
                 <input className="input" value={siteForm.tenantPhone} onChange={(e) => setSiteForm({ ...siteForm, tenantPhone: e.target.value })} />

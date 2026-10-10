@@ -6,6 +6,7 @@ import { Badge, EmptyState, LoadingState, Modal, PageHeader, StatCard } from "@/
 import { useAppData } from "@/context/AppDataProvider";
 import { euro } from "@/lib/utils";
 import type { Lead, LeadStatus } from "@/lib/types";
+import { PlzOrtFields } from "@/components/PlzOrtFields";
 
 const blank = {
   name: "",
@@ -271,14 +272,11 @@ export default function LeadsPage() {
                 <label>Straße + Hausnummer</label>
                 <input className="input" value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
               </div>
-              <div className="formField">
-                <label>PLZ</label>
-                <input className="input" value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} />
-              </div>
-              <div className="formField">
-                <label>Ort</label>
-                <input className="input" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-              </div>
+              <PlzOrtFields
+                postalCode={form.postalCode}
+                city={form.city}
+                onChange={(postalCode, city) => setForm((current) => ({ ...current, postalCode, city }))}
+              />
               <div className="formField">
                 <label>Quelle</label>
                 <select className="select" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>
