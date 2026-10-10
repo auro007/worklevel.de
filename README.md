@@ -1,3 +1,22 @@
+# WORKLEVEL
+
+Android-App für das, was auf [worklevel.de](https://worklevel.de) online ist.
+
+## Auf dem Smartphone installieren
+
+Öffne diesen Link auf dem Android-Handy:
+
+https://github.com/auro007/worklevel.de/releases/latest/download/WORKLEVEL.apk
+
+1. Datei herunterladen.
+2. Datei öffnen und auf **Installieren** tippen.
+3. Wenn Android blockiert: im Browser „Unbekannte Apps“ erlauben, dann die Datei noch einmal öffnen.
+4. WORKLEVEL öffnen und mit dem normalen Konto anmelden.
+
+Die App braucht Internet.
+
+---
+
 # WORKLEVEL V15.5
 
 Aktueller Stabilitäts-/UX-Build für Bestellungen.
